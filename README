@@ -1,0 +1,51 @@
+= sqsirc - IRC/SQS gateway
+
+sqsirc connects to an IRC server and forwards all the traffic to a pair of SQS
+queues. Only the PING/PONG commands are intercepted and interpreted to make
+sure the bot remains online.
+
+== Example Configuration file (JSON)
+
+```json
+{
+	"AWSAccessKeyId": "AAAAAAAAAAAAAAAAAAAA",
+	"AWSSecretAccessKey": "////////////////////////////////////////",
+	"RegionCode": "us-east-1",
+	"IncomingQueueName": "ygor-irc-incoming",
+	"OutgoingQueueName": "ygor-irc-outgoing",
+
+	"IRCServer": "irc.example.com:6667",
+	"Nickname": "ygor"
+}
+```
+
+== Example group policy
+Just update the Statement IDs and the queue ARNs:
+
+```json
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "StmtNNNNNNNNNNNNN",
+			"Effect": "Allow",
+			"Action": [
+				"sqs:CreateQueue", "sqs:ReceiveMessage", "sqs:DeleteMessage"
+			],
+			"Resource": [
+				"arn:aws:sqs:us-east-1:XXXXXXXXXXXX:ygor-irc-incoming"
+			]
+		},
+		{
+			"Sid": "StmtNNNNNNNNNNNNN",
+			"Effect": "Allow",
+			"Action": [
+				"sqs:CreateQueue", "sqs:SendMessage"
+			],
+			"Resource": [
+				"arn:aws:sqs:us-east-1:XXXXXXXXXXXX:ygor-irc-outgoing"
+			]
+		},
+	]
+}
+```

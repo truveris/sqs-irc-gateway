@@ -9,15 +9,15 @@
 //                            |           |
 //              /|\     +-----^---+   +---^----+       |
 //               |      | irc out |   | irc in |       |
-//               |      +---------+   +--------+       |
-//               |                 \ /                 |
-//               |                  |                  |
-//        to irc |         +--------^--------+         | from irc
+//               |      +-----_---+   +---_----+       |
+//               |            |           |            |
+//               |            |           |            |
+//        to irc |         +--^-----------^--+         | from irc
 //               |         | sqs-irc-gateway |         |
-//               |         +--------_--------+         |
-//               |                  |                  |
-//               |                 / \                 |
-//               |       +--------+   +---------+      |
+//               |         +--_-----------_--+         |
+//               |            |           |            |
+//               |            |           |            |
+//               |       +----^---+   +---^-----+      |
 //               |       | sqs in |   | sqs out |     \|/
 //                       +----_---+   +---_-----+
 //                            |           |
@@ -32,8 +32,10 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
+	"time"
 
 	"github.com/truveris/sqs"
 	"github.com/truveris/sqs/sqschan"
@@ -67,11 +69,13 @@ func start() error {
 	// all the IRC messages going back to the server).
 	sqsin, sqsinerrch, err := sqschan.Incoming(client, cfg.OutgoingQueueName)
 	if err != nil {
-		return err
+		return errors.New("unable to create sqschan.Incoming: " +
+			err.Error())
 	}
 	sqsout, sqsouterrch, err := sqschan.Outgoing(client, cfg.IncomingQueueName)
 	if err != nil {
-		return err
+		return errors.New("unable to create sqschan.Outcoming: " +
+			err.Error())
 	}
 
 	for {
@@ -80,7 +84,7 @@ func start() error {
 			// SQS <- IRC
 			sqsout <- data
 		case msg := <-sqsin:
-			// IRC <- SQS 
+			// IRC <- SQS
 			ircout <- msg.Body
 			client.DeleteMessage(msg.QueueURL, msg.ReceiptHandle)
 		case data := <-ircdisc:
@@ -88,13 +92,13 @@ func start() error {
 			log.Printf("Disconnected: %s", data)
 			return nil
 		case err = <-sqsinerrch:
-			log.Printf("Fatal SQS Error on incoming channel: %s",
+			log.Printf("SQS Error on incoming channel: %s",
 				err.Error())
-			return nil
+			time.sleep(10 * time.Second)
 		case err = <-sqsouterrch:
-			log.Printf("Fatal SQS Error on outgoing channel: %s",
+			log.Printf("SQS Error on outgoing channel: %s",
 				err.Error())
-			return nil
+			time.sleep(10 * time.Second)
 		}
 	}
 

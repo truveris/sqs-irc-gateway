@@ -30,7 +30,7 @@ Just update the Statement IDs and the queue ARNs:
 			"Sid": "StmtNNNNNNNNNNNNN",
 			"Effect": "Allow",
 			"Action": [
-				"sqs:CreateQueue", "sqs:ReceiveMessage", "sqs:DeleteMessage"
+				"sqs:CreateQueue", "sqs:SendMessage"
 			],
 			"Resource": [
 				"arn:aws:sqs:us-east-1:XXXXXXXXXXXX:ygor-irc-incoming"
@@ -40,7 +40,7 @@ Just update the Statement IDs and the queue ARNs:
 			"Sid": "StmtNNNNNNNNNNNNN",
 			"Effect": "Allow",
 			"Action": [
-				"sqs:CreateQueue", "sqs:SendMessage"
+				"sqs:CreateQueue", "sqs:ReceiveMessage", "sqs:DeleteMessage"
 			],
 			"Resource": [
 				"arn:aws:sqs:us-east-1:XXXXXXXXXXXX:ygor-irc-outgoing"

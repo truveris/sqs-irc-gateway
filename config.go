@@ -11,11 +11,7 @@ import (
 )
 
 type Cmd struct {
-	Config string `short:"c" description:"Configuration file" default:"/etc/sqs-irc-gateway.conf"`
-}
-
-type ChannelCfg struct {
-	Minions []string
+	ConfigFile string `short:"c" description:"Configuration file" default:"/etc/sqs-irc-gateway.conf"`
 }
 
 type Cfg struct {
@@ -64,7 +60,7 @@ func parseCommandLine() {
 
 // Look in the current directory for an config.json file.
 func parseConfigFile() {
-	file, err := os.Open("config.json")
+	file, err := os.Open(cmd.ConfigFile)
 	if err != nil {
 		println("config error: " + err.Error())
 		os.Exit(1)

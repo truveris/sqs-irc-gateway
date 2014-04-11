@@ -42,7 +42,7 @@ var (
 // Send a command to the IRC server.
 func sendLine(conn net.Conn, cmd string) {
 	cmd = strings.TrimSpace(cmd)
-	log.Printf("[body] > %s", cmd)
+	log.Printf("> %s", cmd)
 	fmt.Fprintf(conn, "%s\r\n", cmd)
 }
 
@@ -54,13 +54,13 @@ func parseServerMessageCode(line string) int16 {
 
 	code, err := strconv.ParseInt(tokens[1], 10, 16)
 	if err != nil {
-		log.Printf("[body] invalid server message: bad code (%s) in: %s",
+		log.Printf("error: invalid server message: bad code (%s) in: %s",
 			err.Error(), line)
 		return 0
 	}
 
 	if tokens[2] != cfg.Nickname {
-		log.Printf("[body] invalid server message: wrong nickname in: %s",
+		log.Printf("error: invalid server message: wrong nickname in: %s",
 			line)
 		return 0
 	}
@@ -120,6 +120,7 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 				continue
 			}
 
+			log.Printf("< %s", data)
 			incoming <- data
 		// Standby
 		default:

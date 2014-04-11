@@ -19,8 +19,8 @@ func start() error {
 	}
 
 	// Start SQS connection:
-	client, err := sqs.NewClient(cfg.AWSSecretAccessKey,
-		cfg.AWSAccessKeyId, cfg.RegionCode)
+	client, err := sqs.NewClient(cfg.AWSAccessKeyId, cfg.AWSSecretAccessKey,
+		cfg.RegionCode)
 	if err != nil {
 		return err
 	}
@@ -73,6 +73,7 @@ func start() error {
 
 func main() {
 	parseCommandLine()
+	parseConfigFile()
 
 	log.Printf("starting %s", cfg.Nickname)
 	err := start()

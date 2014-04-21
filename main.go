@@ -86,7 +86,7 @@ func start() error {
 		case msg := <-sqsin:
 			// IRC <- SQS
 			ircout <- msg.Body
-			client.DeleteMessage(msg.QueueURL, msg.ReceiptHandle)
+			client.DeleteMessage(msg)
 		case data := <-ircdisc:
 			// Server has disconnected, we're done.
 			log.Printf("Disconnected: %s", data)
@@ -94,11 +94,11 @@ func start() error {
 		case err = <-sqsinerrch:
 			log.Printf("SQS Error on incoming channel: %s",
 				err.Error())
-			time.sleep(10 * time.Second)
+			time.Sleep(10 * time.Second)
 		case err = <-sqsouterrch:
 			log.Printf("SQS Error on outgoing channel: %s",
 				err.Error())
-			time.sleep(10 * time.Second)
+			time.Sleep(10 * time.Second)
 		}
 	}
 

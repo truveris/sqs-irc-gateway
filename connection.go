@@ -91,6 +91,8 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 			panic(err)
 		}
 
+		data = strings.Trim(data, "\r\n")
+
 		switch ConnectionState {
 		case CS_WAITING_FOR_HELLO:
 			// This is the NICK/USER phase, add more underscores to
@@ -116,7 +118,7 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 			// channel.
 			if strings.Index(data, "PING :") == 0 {
 				r := strings.Replace(data, "PING", "PONG", 1)
-				fmt.Fprintf(conn, "%s", r)
+				fmt.Fprintf(conn, "%s\r\n", r)
 				continue
 			}
 

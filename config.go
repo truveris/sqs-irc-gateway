@@ -21,7 +21,7 @@ type Cfg struct {
 	AWSSecretAccessKey string
 
 	// AWS Region to use for SQS access (e.g. us-east-1).
-	RegionCode string
+	AWSRegionCode string
 
 	// Server name as expected by Go's Dial command, it should contain the
 	// port number (e.g. localhost:6667).

@@ -50,7 +50,7 @@ func start() error {
 
 	// Start SQS connection:
 	client, err := sqs.NewClient(cfg.AWSAccessKeyId, cfg.AWSSecretAccessKey,
-		cfg.RegionCode)
+		cfg.AWSRegionCode)
 	if err != nil {
 		return err
 	}

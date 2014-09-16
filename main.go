@@ -107,10 +107,13 @@ func start() error {
 
 func main() {
 	parseCommandLine()
-	parseConfigFile()
+	err := parseConfigFile()
+	if err != nil {
+		log.Fatal("config error: ", err.Error())
+	}
 
-	log.Printf("starting %s", cfg.Nickname)
-	err := start()
+	log.Printf("starting %s", cfg.IRCNickname)
+	err = start()
 	if err != nil {
 		log.Fatal(err)
 	}

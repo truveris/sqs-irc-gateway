@@ -59,7 +59,7 @@ func parseServerMessageCode(line string) int16 {
 		return 0
 	}
 
-	if tokens[2] != cfg.Nickname {
+	if tokens[2] != cfg.IRCNickname {
 		log.Printf("error: invalid server message: wrong nickname in: %s",
 			line)
 		return 0
@@ -105,7 +105,7 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 			switch code {
 			case ERR_NONICKNAMEGIVEN, ERR_ERRONEUSNICKNAME,
 				ERR_NICKNAMEINUSE, ERR_NICKCOLLISION:
-				cfg.Nickname = cfg.Nickname + "_"
+				cfg.IRCNickname = cfg.IRCNickname + "_"
 				ConnectionState = CS_INIT
 			default:
 				ConnectionState = CS_LIVE
@@ -135,10 +135,10 @@ func connectionWriter(conn net.Conn, outgoing chan string) {
 	for {
 		switch ConnectionState {
 		case CS_INIT:
-			sendLine(conn, fmt.Sprintf("NICK %s", cfg.Nickname))
+			sendLine(conn, fmt.Sprintf("NICK %s", cfg.IRCNickname))
 			sendLine(conn, fmt.Sprintf("USER %s localhost "+
-				"127.0.0.1 :%s\r\n", cfg.Nickname,
-				cfg.Nickname))
+				"127.0.0.1 :%s\r\n", cfg.IRCNickname,
+				cfg.IRCNickname))
 			ConnectionState = CS_WAITING_FOR_HELLO
 		case CS_LIVE:
 			for msg := range outgoing {

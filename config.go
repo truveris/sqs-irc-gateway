@@ -6,6 +6,7 @@ package main
 import (
 	"encoding/json"
 	"os"
+	"errors"
 
 	"github.com/jessevdk/go-flags"
 )
@@ -30,7 +31,7 @@ type Cfg struct {
 	// Name of the bot upon startup. This can naturally be changed with
 	// commands coming from the outgoing queue but this particular
 	// sub-system should not care, this is only for initialization.
-	Nickname string
+	IRCNickname string
 
 	// These are incoming and outgoing from the perspective of this process
 	// toward the IRC server (incoming from IRC, outgoing to IRC). Which
@@ -59,16 +60,40 @@ func parseCommandLine() {
 }
 
 // Look in the current directory for an config.json file.
-func parseConfigFile() {
+func parseConfigFile() error {
 	file, err := os.Open(cmd.ConfigFile)
 	if err != nil {
-		println("config error: " + err.Error())
-		os.Exit(1)
+		return err
 	}
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&cfg)
 	if err != nil {
-		println("config error: " + err.Error())
-		os.Exit(1)
+		return err
 	}
+
+	if cfg.IRCNickname == "" {
+		return errors.New("'IRCNickname' is not defined")
+	}
+
+	if cfg.IncomingQueueName == "" {
+		return errors.New("'IRCIncomingQueueName' is not defined")
+	}
+
+	if cfg.OutgoingQueueName == "" {
+		return errors.New("'IRCOutgoingQueueName' is not defined")
+	}
+
+	if cfg.AWSRegionCode == "" {
+		return errors.New("'AWSRegionCode' is not defined")
+	}
+
+	if cfg.AWSAccessKeyId == "" {
+		return errors.New("'AWSAccessKeyId' is not defined")
+	}
+
+	if cfg.AWSSecretAccessKey == "" {
+		return errors.New("'AWSSecretAccessKey' is not defined")
+	}
+
+	return nil
 }

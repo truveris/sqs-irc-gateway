@@ -1,10 +1,10 @@
-= sqsirc - IRC/SQS gateway
+# sqsirc - IRC/SQS gateway
 
 sqsirc connects to an IRC server and forwards all the traffic to a pair of SQS
 queues. Only the PING/PONG commands are intercepted and interpreted to make
 sure the bot remains online.
 
-== Example Configuration file (JSON)
+## Example Configuration file (JSON)
 
 ```json
 {

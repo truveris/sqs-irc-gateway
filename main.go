@@ -78,6 +78,22 @@ func start() error {
 			err.Error())
 	}
 
+	// Handle error logging in a separate go routine to avoid deadlocks.
+	go func() {
+		for {
+			select {
+			case err = <-sqsinerrch:
+				log.Printf("SQS Error on incoming channel: %s",
+					err.Error())
+				time.Sleep(10 * time.Second)
+			case err = <-sqsouterrch:
+				log.Printf("SQS Error on outgoing channel: %s",
+					err.Error())
+				time.Sleep(10 * time.Second)
+			}
+		}
+	}()
+
 	for {
 		select {
 		case data := <-ircin:
@@ -91,14 +107,6 @@ func start() error {
 			// Server has disconnected, we're done.
 			log.Printf("Disconnected: %s", data)
 			return nil
-		case err = <-sqsinerrch:
-			log.Printf("SQS Error on incoming channel: %s",
-				err.Error())
-			time.Sleep(10 * time.Second)
-		case err = <-sqsouterrch:
-			log.Printf("SQS Error on outgoing channel: %s",
-				err.Error())
-			time.Sleep(10 * time.Second)
 		}
 	}
 

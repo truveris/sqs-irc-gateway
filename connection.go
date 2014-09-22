@@ -26,6 +26,10 @@ const (
 	ERR_ERRONEUSNICKNAME = 432
 	ERR_NICKNAMEINUSE    = 433
 	ERR_NICKCOLLISION    = 436
+
+	// If you can't connect, push or pull data from IRC in a reasonable
+	// amount of time, just give up and move on.
+	IRC_TIMEOUT          = 60 * time.Second
 )
 
 type ServerMessage struct {
@@ -70,7 +74,7 @@ func parseServerMessageCode(line string) int16 {
 
 // Connect to the selected server and join all the specified channels.
 func connect() (net.Conn, error) {
-	conn, err := net.Dial("tcp", cfg.IRCServer)
+	conn, err := net.DialTimeout("tcp", cfg.IRCServer, IRC_TIMEOUT)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ func sqsReader(client *sqs.Client, queue chan string, errors chan error) {
 			continue
 		}
 
-		queue <- msg.Body
+		queue <- sqs.SQSDecode(msg.Body)
 	}
 }
 
@@ -46,7 +46,7 @@ func sqsWriter(client *sqs.Client, queue chan string, errors chan error) {
 	}
 
 	for {
-		err = client.SendMessage(url, <-queue)
+		err = client.SendMessage(url, sqs.SQSEncode(<-queue))
 		if err != nil {
 			log.Printf("sqsWriter SendMessage error: %s", err.Error())
 			continue

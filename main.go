@@ -98,10 +98,10 @@ func start() error {
 		select {
 		case data := <-ircin:
 			// SQS <- IRC
-			sqsout <- data
+			sqsout <- sqs.SQSEncode(data)
 		case msg := <-sqsin:
 			// IRC <- SQS
-			ircout <- msg.Body
+			ircout <- sqs.SQSDecode(msg.Body)
 			client.DeleteMessage(msg)
 		case data := <-ircdisc:
 			// Server has disconnected, we're done.

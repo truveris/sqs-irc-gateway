@@ -1,4 +1,4 @@
-// Copyright 2014, Truveris Inc. All Rights Reserved.
+// Copyright 2014-2015, Truveris Inc. All Rights Reserved.
 // Use of this source code is governed by the ISC license in the LICENSE file.
 
 package main
@@ -15,32 +15,35 @@ import (
 	"time"
 )
 
+// Connection states
 const (
-	// Connection states
-	CS_INIT              = iota
-	CS_WAITING_FOR_HELLO = iota
-	CS_LIVE              = iota
-
-	// Connection error codes (RFC 1459)
-	ERR_NONICKNAMEGIVEN  = 431
-	ERR_ERRONEUSNICKNAME = 432
-	ERR_NICKNAMEINUSE    = 433
-	ERR_NICKCOLLISION    = 436
-
-	// If you can't connect, push or pull data from IRC in a reasonable
-	// amount of time, just give up and move on.
-	IRC_TIMEOUT          = 60 * time.Second
+	ConnStateInit            = iota
+	ConnStateWaitingForHello = iota
+	ConnStateLive            = iota
 )
 
-type ServerMessage struct {
-	Code     int16
-	Nickname string
-	Message  string
-}
+// Connection error codes (RFC 1459)
+const (
+	ErrCodeNoNicknameGiven  = 431
+	ErrCodeErroneusNickname = 432
+	ErrCodeNicknameInUse    = 433
+	ErrCodeNickCollision    = 436
+)
+
+// If you can't connect, push or pull data from IRC in a reasonable amount of
+// time, just give up and move on.
+const (
+	IRCTimeout = 60 * time.Second
+)
 
 var (
-	ConnectionState = CS_INIT
-	ReServerMessage = regexp.MustCompile(`^:[^ ]+ ([0-9]{2,4}) ([^ ]+) (.*)`)
+	// ConnectionState is the state of our connection.  Both reader and
+	// writer are implemented as minimal state machines sharing the same
+	// state.
+	ConnectionState = ConnStateInit
+
+	// reServerMessage is a regexp used to extract server messages.
+	reServerMessage = regexp.MustCompile(`^:[^ ]+ ([0-9]{2,4}) ([^ ]+) (.*)`)
 )
 
 // Send a command to the IRC server.
@@ -51,7 +54,7 @@ func sendLine(conn net.Conn, cmd string) {
 }
 
 func parseServerMessageCode(line string) int16 {
-	tokens := ReServerMessage.FindStringSubmatch(line)
+	tokens := reServerMessage.FindStringSubmatch(line)
 	if tokens == nil {
 		return 0
 	}
@@ -74,7 +77,7 @@ func parseServerMessageCode(line string) int16 {
 
 // Connect to the selected server and join all the specified channels.
 func connect() (net.Conn, error) {
-	conn, err := net.DialTimeout("tcp", cfg.IRCServer, IRC_TIMEOUT)
+	conn, err := net.DialTimeout("tcp", cfg.IRCServer, IRCTimeout)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +101,7 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 		data = strings.Trim(data, "\r\n")
 
 		switch ConnectionState {
-		case CS_WAITING_FOR_HELLO:
+		case ConnStateWaitingForHello:
 			// This is the NICK/USER phase, add more underscores to
 			// the nick, until we find one available. If we get any
 			// message other than a NICK error, we assume the
@@ -107,19 +110,19 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 			code := parseServerMessageCode(data)
 
 			switch code {
-			case ERR_NONICKNAMEGIVEN, ERR_ERRONEUSNICKNAME,
-				ERR_NICKNAMEINUSE, ERR_NICKCOLLISION:
+			case ErrCodeNoNicknameGiven, ErrCodeErroneusNickname,
+				ErrCodeNicknameInUse, ErrCodeNickCollision:
 				cfg.IRCNickname = cfg.IRCNickname + "_"
-				ConnectionState = CS_INIT
+				ConnectionState = ConnStateInit
 			default:
-				ConnectionState = CS_LIVE
+				ConnectionState = ConnStateLive
 				incoming <- data
 			}
 
-		case CS_LIVE:
+		case ConnStateLive:
 			// Handle PING request from the server. Without these
-			// our bot would time out. Don't push that to the
-			// channel.
+			// our bot would time out. They are not pushed through
+			// the queues.
 			if strings.Index(data, "PING :") == 0 {
 				r := strings.Replace(data, "PING", "PONG", 1)
 				fmt.Fprintf(conn, "%s\r\n", r)
@@ -138,13 +141,13 @@ func connectionReader(conn net.Conn, incoming chan string, disconnect chan strin
 func connectionWriter(conn net.Conn, outgoing chan string) {
 	for {
 		switch ConnectionState {
-		case CS_INIT:
+		case ConnStateInit:
 			sendLine(conn, fmt.Sprintf("NICK %s", cfg.IRCNickname))
 			sendLine(conn, fmt.Sprintf("USER %s localhost "+
 				"127.0.0.1 :%s\r\n", cfg.IRCNickname,
 				cfg.IRCNickname))
-			ConnectionState = CS_WAITING_FOR_HELLO
-		case CS_LIVE:
+			ConnectionState = ConnStateWaitingForHello
+		case ConnStateLive:
 			for msg := range outgoing {
 				fmt.Fprintf(conn, "%s\r\n", msg)
 			}

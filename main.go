@@ -1,4 +1,4 @@
-// Copyright 2014, Truveris Inc. All Rights Reserved.
+// Copyright 2014-2015, Truveris Inc. All Rights Reserved.
 // Use of this source code is governed by the ISC license in the LICENSE file.
 //
 // Here is a shitty diagram to explain how this work.
@@ -49,7 +49,7 @@ func start() error {
 	}
 
 	// Start SQS connection:
-	client, err := sqs.NewClient(cfg.AWSAccessKeyId, cfg.AWSSecretAccessKey,
+	client, err := sqs.NewClient(cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey,
 		cfg.AWSRegionCode)
 	if err != nil {
 		return err

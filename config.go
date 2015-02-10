@@ -1,24 +1,26 @@
-// Copyright 2014, Truveris Inc. All Rights Reserved.
+// Copyright 2014-2015, Truveris Inc. All Rights Reserved.
 // Use of this source code is governed by the ISC license in the LICENSE file.
 
 package main
 
 import (
 	"encoding/json"
-	"os"
 	"errors"
+	"os"
 
 	"github.com/jessevdk/go-flags"
 )
 
+// Cmd is a singleton describing the command-line configuration.
 type Cmd struct {
 	ConfigFile string `short:"c" description:"Configuration file" default:"/etc/sqs-irc-gateway.conf"`
 }
 
+// Cfg is a singleton describing the configuration file.
 type Cfg struct {
 	// Credentials used to write to the minion queues and read from the
 	// soul queue.
-	AWSAccessKeyId     string
+	AWSAccessKeyID     string
 	AWSSecretAccessKey string
 
 	// AWS Region to use for SQS access (e.g. us-east-1).
@@ -87,8 +89,8 @@ func parseConfigFile() error {
 		return errors.New("'AWSRegionCode' is not defined")
 	}
 
-	if cfg.AWSAccessKeyId == "" {
-		return errors.New("'AWSAccessKeyId' is not defined")
+	if cfg.AWSAccessKeyID == "" {
+		return errors.New("'AWSAccessKeyID' is not defined")
 	}
 
 	if cfg.AWSSecretAccessKey == "" {

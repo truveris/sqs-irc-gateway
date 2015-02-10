@@ -1,6 +1,6 @@
 all: sqs-irc-gateway
 
-ygor:
+sqs-irc-gateway:
 	go build
 
 clean:
